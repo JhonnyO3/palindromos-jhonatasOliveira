@@ -20,6 +20,10 @@ public class Palindrome {
         this.palindrome = palindrome;
     }
 
+    public Palindrome( String palindrome) {
+        this.palindrome = palindrome;
+    }
+
     public Palindrome() {
 
     }

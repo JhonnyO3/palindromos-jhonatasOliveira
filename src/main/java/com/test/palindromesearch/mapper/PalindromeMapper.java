@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 public class PalindromeMapper implements Function<PalindromeDTO, Palindrome > {
     @Override
     public Palindrome apply(PalindromeDTO palindromeDTO) {
-        return new Palindrome(palindromeDTO.id(),palindromeDTO.palindrome());
+        return new Palindrome(palindromeDTO.palindrome());
     }
 
     public List<Palindrome> mapToList(List<PalindromeDTO> palindromeList) {

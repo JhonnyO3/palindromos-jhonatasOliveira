@@ -14,7 +14,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+
 
 @Service
 public class PalindromeService {
@@ -31,7 +33,6 @@ public class PalindromeService {
     private PalindromeRepository palindromeRepository;
 
 
-
     @Bean
     public ModelMapper modelMapper() {
         return new ModelMapper();
@@ -46,11 +47,11 @@ public class PalindromeService {
 
             List<Palindrome> palindrome = palindromeRepository.findAll();
 
-            List<PalindromeDTO> palindromeDTOList = palindromeDTOMapper.mapToDTOList(palindrome);
-
-            if (palindromeDTOList.isEmpty()) {
+            if (palindrome.isEmpty()) {
                 throw new PalindromeException(HttpStatus.NOT_FOUND, "Not found any palindrome");
             }
+
+            List<PalindromeDTO> palindromeDTOList = palindromeDTOMapper.mapToDTOList(palindrome);
 
             return palindromeDTOList;
 
@@ -74,27 +75,27 @@ public class PalindromeService {
             return palindromeDTOResponses;
 
         } catch (Exception e) {
-            throw new PalindromeException(HttpStatus.BAD_REQUEST,"Error inserting palindromes!");
+            throw new PalindromeException(HttpStatus.BAD_REQUEST, "Error inserting palindromes!");
         }
     }
 
 
-
-
     public List<PalindromeDTO> switchPalindromes(MatrizDTO matrizDto, AngleEnum angle) throws Exception {
 
-        List<String> palindromeList = new ArrayList();
+        //Horizontal list
+        List<List<String>> palindromeList = horizontalFormat(matrizDto);
 
-        //TODO: Criar dto com enum dos palindromos.
-        switch (angle) {
-            case ANGLE_HORIZONTAL:
+        //Vertical list
+        List<List<String>> vertitalList =  verticalFormat(palindromeList);
+
+        //Diagonal
+        List<List<String>> diagonalList = diagonalFormat(palindromeList);
 
 
-            case ANGLE_VERTICAL:
+        System.out.println("Diagonal List: " + diagonalList);
+        System.out.println("Vertical List: " + vertitalList );
+        System.out.println("Horizontal List: " + palindromeList);
 
-            case ANGLE_DIAGONAL:
-
-        }
 
         PalindromeDTO palindromeDTO = new PalindromeDTO(null, "CASCA");
         PalindromeDTO palindromeDTO1 = new PalindromeDTO(null, "OVO");
@@ -102,15 +103,6 @@ public class PalindromeService {
         List<PalindromeDTO> palindromeDTOResponses = new ArrayList<>();
         palindromeDTOResponses.add(palindromeDTO);
         palindromeDTOResponses.add(palindromeDTO1);
-
-
-
-
-
-
-
-
-
 
 
 //               isPalindrome(matrizDto, palindromeList);
@@ -152,7 +144,62 @@ public class PalindromeService {
             }
 
         }
-        throw new PalindromeException(HttpStatus.NOT_FOUND,"Not found any palindrome in the matriz");
+        throw new PalindromeException(HttpStatus.NOT_FOUND, "Not found any palindrome in the matriz");
+    }
+
+
+    public List<List<String>> horizontalFormat(MatrizDTO matrizDTO) {
+        List<List<String>> palindromeList = new ArrayList();
+
+        //Horizontal list
+        for (ColumnDTO verticalColumn : matrizDTO.columns()) {
+
+            List<String> line = verticalColumn.lines();
+
+            palindromeList.add(line);
+
+        }
+        return palindromeList;
+
+    }
+
+    public List<List<String>> verticalFormat(List<List<String>> palindromeList) {
+        List<List<String>> columns = new ArrayList<>();
+
+        for (int i = 0; i < palindromeList.size(); i++) {
+
+            List<String> column = new ArrayList<>();
+
+            for (int b = 0; b < palindromeList.get(i).size(); b++) {
+
+                column.add(palindromeList.get(b).get(i));
+            }
+
+            columns.add(column);
+
+        }
+        return columns;
+
+    }
+
+    public List<List<String>> diagonalFormat(List<List<String>> palindromeList) {
+        List<String> diagonal1 = new ArrayList<>();
+        List<String> diagonal2 = new ArrayList<>();
+        List<List<String>> diagonals = new ArrayList<>();
+
+        for (int b = 0; b < palindromeList.get(1).size(); b++) {
+            diagonal1.add(palindromeList.get(b).get(b));
+        }
+        for (int b = palindromeList.get(1).size() - 1; b >= 0; b--) {
+            diagonal2.add(palindromeList.get(b).get(b));
+
+        }
+
+        diagonals.add(diagonal1);
+        diagonals.add(diagonal2);
+
+        return diagonals;
+
     }
 
 
