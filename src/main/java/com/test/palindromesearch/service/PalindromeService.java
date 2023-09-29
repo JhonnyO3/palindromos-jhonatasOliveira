@@ -1,9 +1,16 @@
 package com.test.palindromesearch.service;
 
-import com.test.palindromesearch.dto.AngleEnum;
-import com.test.palindromesearch.dto.PalindromeResultDto;
-import com.test.palindromesearch.model.ColumnModel;
-import com.test.palindromesearch.model.MatrizModel;
+import com.test.palindromesearch.config.PalindromeException;
+import com.test.palindromesearch.dto.*;
+import com.test.palindromesearch.mapper.PalindromeDTOMapperr;
+import com.test.palindromesearch.mapper.PalindromeDTOResponseMapper;
+import com.test.palindromesearch.mapper.PalindromeMapper;
+import com.test.palindromesearch.model.Palindrome;
+import com.test.palindromesearch.repository.PalindromeRepository;
+import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,11 +20,68 @@ import java.util.List;
 public class PalindromeService {
 
     private AngleEnum angleEnum;
+    @Autowired
+    private PalindromeDTOMapperr palindromeDTOMapper;
+    @Autowired
+    private PalindromeMapper palindromeMapper;
+    @Autowired
+    private PalindromeDTOResponseMapper palindromeDTOResponseMapper;
+
+    @Autowired
+    private PalindromeRepository palindromeRepository;
 
 
-    public List<String> switchPalindromes(MatrizModel matrizModel, AngleEnum angle) throws Exception {
 
-        PalindromeResultDto palindromeResultDto;
+    @Bean
+    public ModelMapper modelMapper() {
+        return new ModelMapper();
+    }
+
+    public PalindromeService() {
+    }
+
+    public List<PalindromeDTO> getAllPalindromes() {
+
+        try {
+
+            List<Palindrome> palindrome = palindromeRepository.findAll();
+
+            List<PalindromeDTO> palindromeDTOList = palindromeDTOMapper.mapToDTOList(palindrome);
+
+            if (palindromeDTOList.isEmpty()) {
+                throw new PalindromeException(HttpStatus.NOT_FOUND, "Not found any palindrome");
+            }
+
+            return palindromeDTOList;
+
+        } catch (PalindromeException e) {
+            throw new PalindromeException(HttpStatus.BAD_REQUEST, e.getMessage());
+
+        }
+    }
+
+    public List<PalindromeDTOResponse> findPalindromeInMatriz(MatrizDTO matrizDto) throws Exception {
+
+        try {
+            List<PalindromeDTO> palindromeDTOList = switchPalindromes(matrizDto, AngleEnum.ANGLE_HORIZONTAL);
+
+            List<Palindrome> palindromeList = palindromeMapper.mapToList(palindromeDTOList);
+
+            List<PalindromeDTOResponse> palindromeDTOResponses = palindromeDTOResponseMapper.mapToList(palindromeDTOList);
+
+            palindromeRepository.saveAll(palindromeList);
+
+            return palindromeDTOResponses;
+
+        } catch (Exception e) {
+            throw new PalindromeException(HttpStatus.BAD_REQUEST,"Error inserting palindromes!");
+        }
+    }
+
+
+
+
+    public List<PalindromeDTO> switchPalindromes(MatrizDTO matrizDto, AngleEnum angle) throws Exception {
 
         List<String> palindromeList = new ArrayList();
 
@@ -32,23 +96,39 @@ public class PalindromeService {
 
         }
 
-       List<String> resultPalindromeList = isPalindrome(matrizModel, palindromeList);
+        PalindromeDTO palindromeDTO = new PalindromeDTO(null, "CASCA");
+        PalindromeDTO palindromeDTO1 = new PalindromeDTO(null, "OVO");
+
+        List<PalindromeDTO> palindromeDTOResponses = new ArrayList<>();
+        palindromeDTOResponses.add(palindromeDTO);
+        palindromeDTOResponses.add(palindromeDTO1);
 
 
-        return resultPalindromeList;
+
+
+
+
+
+
+
+
+
+//               isPalindrome(matrizDto, palindromeList);
+
+
+        return palindromeDTOResponses;
     }
 
 
-
-    public List<String> isPalindrome(MatrizModel matrizModel, List<String> palindromeList) throws Exception {
+    public List<String> isPalindrome(MatrizDTO matrizDto, List<String> palindromeList) throws Exception {
 
         List<String> palindrome = new ArrayList<>();
 
-        for (ColumnModel columnModel : matrizModel.getColumns()) {
-            List<String> line = columnModel.getLines();
+        for (ColumnDTO columnDto : matrizDto.columns()) {
+            List<String> line = columnDto.lines();
 
             for (int indexA = 0; indexA < line.size(); indexA++) {
-                if (indexA < line.size() - 1 ) {
+                if (indexA < line.size() - 1) {
                     String wordA = line.get(indexA);
                     String wordB = line.get(indexA + 1);
                     String par = wordA.concat(wordB);
@@ -72,15 +152,8 @@ public class PalindromeService {
             }
 
         }
-        throw  new Exception("Not found any palindrome");
-
+        throw new PalindromeException(HttpStatus.NOT_FOUND,"Not found any palindrome in the matriz");
     }
 
-    public  List<String>  findPalindromeInMatriz(MatrizModel matrizModel) throws Exception {
-       List<String> palidromes =  switchPalindromes(matrizModel, AngleEnum.ANGLE_HORIZONTAL);
 
-       return palidromes;
-
-
-    }
 }
