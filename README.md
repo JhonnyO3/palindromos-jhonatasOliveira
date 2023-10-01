@@ -86,7 +86,7 @@ Para utilizar a API, existem 2 serviços principais:
         {
           "lines": ["E", "L", "E", "R", "A", "R"]
         }
-      ]
+              ]
     }
     ```
     - Response body esperado:
