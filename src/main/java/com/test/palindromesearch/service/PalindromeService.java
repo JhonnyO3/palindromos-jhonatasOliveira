@@ -7,6 +7,7 @@ import com.test.palindromesearch.mapper.PalindromeDTOResponseMapper;
 import com.test.palindromesearch.mapper.PalindromeMapper;
 import com.test.palindromesearch.model.Palindrome;
 import com.test.palindromesearch.repository.PalindromeRepository;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +53,6 @@ public class PalindromeService {
             if (palindrome.isEmpty()) {
                 throw new PalindromeException(HttpStatus.NOT_FOUND, "Not found any palindrome");
             }
-
             List<PalindromeDTO> palindromeDTOList = palindromeDTOMapper.mapToDTOList(palindrome);
 
             logger.info("getAllPalindromes returned with successful");
@@ -64,7 +64,7 @@ public class PalindromeService {
 
         }
     }
-
+    @Transactional
     public List<PalindromeDTO> findPalindromeInMatriz(MatrizDTO matrizDto) throws Exception {
 
         try {
@@ -113,37 +113,28 @@ public class PalindromeService {
 
         logger.info("Calling switchPalindromes..");
 
-        //Horizontal list
         List<List<String>> palindromeList = horizontalFormat(matrizDto);
 
-        //Vertical list
         List<List<String>> vertitalList = verticalFormat(palindromeList);
 
-        //Diagonal
         List<List<String>> diagonalList = diagonalFormat(palindromeList);
 
         List<List<String>> matrizPalindrome = convertAngleList(palindromeList, vertitalList, diagonalList);
 
-
         List<String> palindromeExtractedList = findPalindrome(matrizPalindrome);
-
 
         List<Palindrome> palindromeObjectList = new ArrayList<>();
 
         for (String palindrome : palindromeExtractedList) {
             Palindrome palindromeObject = new Palindrome(palindrome);
             palindromeObjectList.add(palindromeObject);
-
         }
 
         logger.info("switchPalindromes returned with successful");
         logger.info("Palindrome Object" + palindromeObjectList);
         List<PalindromeDTO> palindromeDTO = palindromeDTOMapper.mapToDTOList(palindromeObjectList);
-
-
         return  palindromeDTO;
     }
-
 
     public boolean compareWords(String word1, String word2) {
         if (word1.equals(word2) || word1.equals(new StringBuilder(word2))) {
@@ -151,7 +142,6 @@ public class PalindromeService {
         }
         return false;
     }
-
     public String buildWords(int i, List<String> inputList, boolean reverse, int numberOfLetter) {
         String word2 = "";
         String word1 = "";
@@ -161,7 +151,6 @@ public class PalindromeService {
         if (numberOfLetter == 1) {
             return word1;
         }
-
         if (inputList.size() > i + 1) {
             word2 = inputList.get(i + 1);
         }
@@ -170,28 +159,26 @@ public class PalindromeService {
             return word2.concat(word1);
         }
         return word1.concat(word2);
-
     }
-
     public String palindromeWordController(List<String> inputList,int indexf, int i, String wordIndex, String wordReverse, String word) {
         String palindome = "";
         if (indexf == i + 1) {
              palindome = buildWord3(inputList, indexf, i);
              return  palindome;
         }
+        if (indexf > i +2) {
+            palindome = isPalindrome(wordIndex + inputList.get(indexf -1), wordReverse, word);
+            return palindome;
+        }
         palindome = isPalindrome(wordIndex, wordReverse, word);
-
         return palindome;
     }
-
     public String isPalindrome(String word1, String word2, String word3) {
 
 
         String combination1 = word1 + word2 + word3;
         String combination2 = word1 + new StringBuilder(word2).reverse().toString();
-
         List<String> combinationList = new ArrayList<>(Arrays.asList(combination1, combination2));
-
         for (int i = 0; i < combinationList.size(); i++) {
             String word = combinationList.get(i);
             String reverseWord = new StringBuilder(word).reverse().toString();
@@ -202,12 +189,11 @@ public class PalindromeService {
         }
         return "";
     }
-
     public String buildWord3(List<String> inputList, int indexf, int i) {
         String wordReverse = "";
         String wordIndex = "";
         String word = "";
-        if (indexf == i + 1) {
+        if (indexf == i + 1 || indexf >= i+2) {
             wordReverse = buildWords(indexf + 1, inputList, false, 1);
             wordIndex = buildWords(i, inputList, false, 2);
 
@@ -222,13 +208,11 @@ public class PalindromeService {
             }
         }
         return isPalindrome(wordIndex, wordReverse, word);
-
     }
 
     public List<String> findPalindrome(List<List<String>> matrizPalindrome) throws PalindromeException {
 
         logger.info("Calling findPalindrome..");
-
         String word = "";
 
         String wordFinal = "";
@@ -262,7 +246,6 @@ public class PalindromeService {
                 }
             }
         }
-
         if (palindromes.size() <= 0) {
             throw  new PalindromeException(HttpStatus.BAD_REQUEST, "Not found Any Palindrome inside the Matrix.");
         }
@@ -270,23 +253,18 @@ public class PalindromeService {
         logger.info("Palindromes: " + palindromes);
         return palindromes;
     }
-
-
     public List<List<String>> horizontalFormat(MatrizDTO matrizDTO) {
         List<List<String>> palindromeList = new ArrayList();
 
         //Horizontal list
         for (ColumnDTO verticalColumn : matrizDTO.columns()) {
-
             List<String> line = verticalColumn.lines();
 
             palindromeList.add(line);
-
         }
         return palindromeList;
 
     }
-
     public List<List<String>> verticalFormat(List<List<String>> palindromeList) {
         List<List<String>> columns = new ArrayList<>();
 
@@ -305,15 +283,12 @@ public class PalindromeService {
         return columns;
 
     }
-
     public List<List<String>> diagonalFormat(List<List<String>> palindromeList) {
 
         List<List<String>> diagonals = new ArrayList<>();
         List<List<String>> diagonalsToRemove = new ArrayList<>();
-
         List<List<String>> reversePalindromeList = new ArrayList<>(palindromeList);
         Collections.reverse(reversePalindromeList);
-
         int n = palindromeList.size(); // Tamanho da matriz
 
         // Diagonal Principal
@@ -328,21 +303,17 @@ public class PalindromeService {
         diagonals.add(diagonalReverse);
 
 
-        // Diagonais Secundárias Acima da Principal
         for (int i = 0; i < n - 1; i++) {
             List<String> diagonalSecondary = new ArrayList<>();
             List<String> diagonalReverseSecundary = new ArrayList<>();
-
             for (int j = 0; j < n - i - 1; j++) {
                 diagonalSecondary.add(palindromeList.get(j).get(j + i + 1));
                 diagonalReverseSecundary.add(reversePalindromeList.get(j).get(j + i + 1));
             }
             diagonals.add(diagonalSecondary);
             diagonals.add(diagonalReverseSecundary);
-
         }
 
-        // Diagonais Secundárias Abaixo da Principal
         for (int i = 0; i < n - 1; i++) {
             List<String> diagonalSecondary = new ArrayList<>();
             List<String> diagonalReverseSecundary = new ArrayList<>();
@@ -362,11 +333,9 @@ public class PalindromeService {
                 diagonalsToRemove.add(diagonalWord);
             }
         }
-
         diagonals.removeAll(diagonalsToRemove);
 
         return diagonals;
-
     }
 
 
