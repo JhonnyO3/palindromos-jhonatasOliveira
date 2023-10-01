@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -112,7 +113,7 @@ public class PalindromeService {
 
         List<List<String>> matrizPalindrome = convertAngleList(palindromeList, vertitalList, diagonalList);
 
-        isPalindrome1(matrizPalindrome);
+        findPalindrome(matrizPalindrome);
 
 
         PalindromeDTO palindromeDTO = new PalindromeDTO(null, "CASCA");
@@ -167,14 +168,64 @@ public class PalindromeService {
 
     }
 
+    public String palindromeWordController(List<String> inputList,int indexf, int i, String wordIndex, String wordReverse, String word) {
+        String palindome = "";
+        if (indexf == i + 1) {
+             palindome = buildWord3(inputList, indexf, i);
+             return  palindome;
+        }
+        palindome = isPalindrome(wordIndex, wordReverse, word);
+
+        return palindome;
+    }
+
+    public String isPalindrome(String word1, String word2, String word3) {
+
+
+        String combination1 = word1 + word2 + word3;
+        String combination2 = word1 + new StringBuilder(word2).reverse().toString();
+
+        List<String> combinationList = new ArrayList<>(Arrays.asList(combination1, combination2));
+
+        for (int i = 0; i < combinationList.size(); i++) {
+            String word = combinationList.get(i);
+            String reverseWord = new StringBuilder(word).reverse().toString();
+            if (word.equals(reverseWord)) {
+                return combinationList.get(i);
+
+            }
+        }
+        return "";
+    }
+
+    public String buildWord3(List<String> inputList, int indexf, int i) {
+        String wordReverse = "";
+        String wordIndex = "";
+        String word = "";
+        if (indexf == i + 1) {
+            wordReverse = buildWords(indexf + 1, inputList, false, 1);
+            wordIndex = buildWords(i, inputList, false, 2);
+
+            if (indexf < inputList.size() || i < inputList.size()) {
+                for (int nextWordIndex = indexf + 2; nextWordIndex < inputList.size() - 1; nextWordIndex++) {
+                    word = buildWords(nextWordIndex, inputList, false, 2);
+                    if (!compareWords(wordIndex, word)) {
+                        break;
+                    }
+                    return wordReverse + word;
+                }
+            }
+        }
+        return isPalindrome(wordIndex, wordReverse, word);
+
+    }
+
     //TODO: Limpeza no codigo, finalizar logica
-    public List<String> isPalindrome1(List<List<String>> matrizPalindrome) throws PalindromeException {
+    public List<String> findPalindrome(List<List<String>> matrizPalindrome) throws PalindromeException {
 
         String word = "";
 
         String wordFinal = "";
-
-        int contadorImpar =0;
 
         List<String> palindromes = new ArrayList<>();
 
@@ -191,27 +242,27 @@ public class PalindromeService {
                 for (indexf = 1; indexf < inputList.size() - 1; indexf++) {
                     String wordReverse = buildWords(indexf, inputList, true, 2);
                     if (compareWords(wordIndex, wordReverse)) {
-                        if (indexf == i + 1) { //compara se a Letra presente no index F é a mesma coletada pelo i + 1
-                            wordReverse = buildWords(indexf + 1, inputList, false, 1);
-
-                            if (indexf < inputList.size() || i < inputList.size()) {
-                                for (int nextWordIndex = indexf + 2; nextWordIndex < inputList.size() - 1; nextWordIndex++) {
-                                    word = buildWords(nextWordIndex, inputList, false, 2);
-                                    if (!compareWords(wordIndex, word)) {
-                                        break;
-                                    }
-                                    contadorImpar++;
-                                }
-                            }
-                            wordFinal = wordIndex + wordReverse + word;
-
-                        }
-                        if (indexf != i + 1  && contadorImpar <= 1) {
-                            wordFinal = wordIndex.concat(new StringBuilder(wordReverse).reverse().toString());
-                        }
-
-                        palindromes.add(wordFinal);
-                        System.out.println(palindromes);
+//                        if (indexf == i + 1) {
+//                            String palindome = buildWord3(inputList, indexf, i);
+//                            palindromes.add(palindome);
+//                            cutWord = false;
+//                            break actualList;
+//                        }
+//                        if (indexf == i + 1) { //compara se a Letra presente no index F é a mesma coletada pelo i + 1
+//                            wordReverse = buildWords(indexf + 1, inputList, false, 1);
+//
+//                            if (indexf < inputList.size() || i < inputList.size()) {
+//                                for (int nextWordIndex = indexf + 2; nextWordIndex < inputList.size() - 1; nextWordIndex++) {
+//                                    word = buildWords(nextWordIndex, inputList, false, 2);
+//                                    if (!compareWords(wordIndex, word)) {
+//                                        break;
+//                                    }
+//                                }
+//                            }
+//                        }
+                        String palindome = palindromeWordController(inputList, indexf, i, wordIndex, wordReverse, word);
+//                        String palindome = isPalindrome(wordIndex, wordReverse, word);
+                        palindromes.add(palindome);
                         cutWord = false;
                         word = "";
                         break actualList;
@@ -225,42 +276,6 @@ public class PalindromeService {
         }
         System.out.println(palindromes);
         return palindromes;
-    }
-
-
-    public List<String> isPalindrome(MatrizDTO matrizDto, List<String> palindromeList) throws Exception {
-
-        List<String> palindrome = new ArrayList<>();
-
-        for (ColumnDTO columnDto : matrizDto.columns()) {
-            List<String> line = columnDto.lines();
-
-            for (int indexA = 0; indexA < line.size(); indexA++) {
-                if (indexA < line.size() - 1) {
-                    String wordA = line.get(indexA);
-                    String wordB = line.get(indexA + 1);
-                    String par = wordA.concat(wordB);
-
-                    for (int indexB = indexA + 1; indexB < line.size(); indexB++) {
-                        if (indexB < line.size() - 1) {
-                            String wordC = line.get(indexB);
-                            String wordD = line.get(indexB + 1);
-                            String reversePar = wordD.concat(wordC);
-                            String parReverse = new StringBuilder(reversePar).reverse().toString();
-
-                            if (par.equals(reversePar) && indexB == indexA + 2) {
-                                System.out.println("Foi encontrado um par: " + par.concat(parReverse));
-                                palindrome.add(par.concat(parReverse));
-                                return palindrome;
-                            }
-                        }
-
-                    }
-                }
-            }
-
-        }
-        throw new PalindromeException(HttpStatus.NOT_FOUND, "Not found any palindrome in the matriz");
     }
 
 
