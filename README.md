@@ -91,7 +91,7 @@ Para utilizar a API, existem 2 serviços principais:
     ```
     - Response body esperado:
       ```json
-      [
+[
     {
         "id": 1,
         "palindrome": "OSSO"
@@ -104,7 +104,9 @@ Para utilizar a API, existem 2 serviços principais:
         "id": 3,
         "palindrome": "REVER"
     }
-  ]
+]
+
+
       ```
 
 #### Obtenção de Palíndromos
