@@ -14,7 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 
@@ -79,6 +79,25 @@ public class PalindromeService {
         }
     }
 
+    public List<List<String>> convertAngleList(List<List<String>> palindromeList, List<List<String>> vertitalList, List<List<String>> diagonalList) {
+
+        System.out.println("Diagonal List: " + diagonalList);
+        System.out.println("Vertical List: " + vertitalList);
+        System.out.println("Horizontal List: " + palindromeList);
+
+        List<List<String>> angleList = new ArrayList<>();
+
+        angleList.addAll(palindromeList);
+        angleList.addAll(vertitalList);
+        angleList.addAll(diagonalList);
+
+        System.out.println("Palindrome List: " + angleList);
+
+
+        return angleList;
+
+    }
+
 
     public List<PalindromeDTO> switchPalindromes(MatrizDTO matrizDto, AngleEnum angle) throws Exception {
 
@@ -86,15 +105,14 @@ public class PalindromeService {
         List<List<String>> palindromeList = horizontalFormat(matrizDto);
 
         //Vertical list
-        List<List<String>> vertitalList =  verticalFormat(palindromeList);
+        List<List<String>> vertitalList = verticalFormat(palindromeList);
 
         //Diagonal
         List<List<String>> diagonalList = diagonalFormat(palindromeList);
 
+        List<List<String>> matrizPalindrome = convertAngleList(palindromeList, vertitalList, diagonalList);
 
-        System.out.println("Diagonal List: " + diagonalList);
-        System.out.println("Vertical List: " + vertitalList );
-        System.out.println("Horizontal List: " + palindromeList);
+        isPalindrome1(matrizPalindrome);
 
 
         PalindromeDTO palindromeDTO = new PalindromeDTO(null, "CASCA");
@@ -105,10 +123,108 @@ public class PalindromeService {
         palindromeDTOResponses.add(palindromeDTO1);
 
 
-//               isPalindrome(matrizDto, palindromeList);
-
-
         return palindromeDTOResponses;
+    }
+
+    public boolean wordIsPalindrome(String word) {
+        int firtLetter = 0;
+
+        int wordSize = word.length() - 1;
+
+        while (firtLetter < wordSize) {
+            if (word.charAt(firtLetter) != word.charAt(wordSize)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean compareWords(String word1, String word2) {
+        if (word1.equals(word2) || word1.equals(new StringBuilder(word2))) {
+            return true;
+        }
+        return false;
+    }
+
+    public String buildWords(int i, List<String> inputList, boolean reverse, int numberOfLetter) {
+        String word2 = "";
+        String word1 = "";
+
+        word1 = inputList.get(i);
+
+        if (numberOfLetter == 1) {
+            return word1;
+        }
+
+        if (inputList.size() > i + 1) {
+            word2 = inputList.get(i + 1);
+        }
+
+        if (reverse) {
+            return word2.concat(word1);
+        }
+        return word1.concat(word2);
+
+    }
+
+    //TODO: Limpeza no codigo, finalizar logica
+    public List<String> isPalindrome1(List<List<String>> matrizPalindrome) throws PalindromeException {
+
+        String word = "";
+
+        String wordFinal = "";
+
+        int contadorImpar =0;
+
+        List<String> palindromes = new ArrayList<>();
+
+        int indexf = 1;
+
+        for (int listIndex = 0; listIndex < matrizPalindrome.size() - 1; listIndex++) {
+            List<String> inputList = matrizPalindrome.get(listIndex);
+
+            actualList:
+            for (int i = 0; i < inputList.size(); i++) {
+                boolean cutWord = true;
+                String wordIndex = buildWords(i, inputList, false, 2);
+
+                for (indexf = 1; indexf < inputList.size() - 1; indexf++) {
+                    String wordReverse = buildWords(indexf, inputList, true, 2);
+                    if (compareWords(wordIndex, wordReverse)) {
+                        if (indexf == i + 1) { //compara se a Letra presente no index F é a mesma coletada pelo i + 1
+                            wordReverse = buildWords(indexf + 1, inputList, false, 1);
+
+                            if (indexf < inputList.size() || i < inputList.size()) {
+                                for (int nextWordIndex = indexf + 2; nextWordIndex < inputList.size() - 1; nextWordIndex++) {
+                                    word = buildWords(nextWordIndex, inputList, false, 2);
+                                    if (!compareWords(wordIndex, word)) {
+                                        break;
+                                    }
+                                    contadorImpar++;
+                                }
+                            }
+                            wordFinal = wordIndex + wordReverse + word;
+
+                        }
+                        if (indexf != i + 1  && contadorImpar <= 1) {
+                            wordFinal = wordIndex.concat(new StringBuilder(wordReverse).reverse().toString());
+                        }
+
+                        palindromes.add(wordFinal);
+                        System.out.println(palindromes);
+                        cutWord = false;
+                        word = "";
+                        break actualList;
+                    }
+                }
+                if (cutWord) {
+                    inputList.remove(inputList.get(i));
+                    i = -1;
+                }
+            }
+        }
+        System.out.println(palindromes);
+        return palindromes;
     }
 
 
@@ -183,20 +299,64 @@ public class PalindromeService {
     }
 
     public List<List<String>> diagonalFormat(List<List<String>> palindromeList) {
-        List<String> diagonal1 = new ArrayList<>();
-        List<String> diagonal2 = new ArrayList<>();
+
         List<List<String>> diagonals = new ArrayList<>();
+        List<List<String>> diagonalsToRemove = new ArrayList<>();
 
-        for (int b = 0; b < palindromeList.get(1).size(); b++) {
-            diagonal1.add(palindromeList.get(b).get(b));
+        List<List<String>> reversePalindromeList = new ArrayList<>(palindromeList);
+        Collections.reverse(reversePalindromeList);
+
+        int n = palindromeList.size(); // Tamanho da matriz
+
+        // Diagonal Principal
+        List<String> diagonalMain = new ArrayList<>();
+        List<String> diagonalReverse = new ArrayList<>();
+
+        for (int i = 0; i < n; i++) {
+            diagonalMain.add(palindromeList.get(i).get(i));
+            diagonalReverse.add(reversePalindromeList.get(i).get(i));
         }
-        for (int b = palindromeList.get(1).size() - 1; b >= 0; b--) {
-            diagonal2.add(palindromeList.get(b).get(b));
+        diagonals.add(diagonalMain);
+        diagonals.add(diagonalReverse);
+
+
+        // Diagonais Secundárias Acima da Principal
+        for (int i = 0; i < n - 1; i++) {
+            List<String> diagonalSecondary = new ArrayList<>();
+            List<String> diagonalReverseSecundary = new ArrayList<>();
+
+            for (int j = 0; j < n - i - 1; j++) {
+                diagonalSecondary.add(palindromeList.get(j).get(j + i + 1));
+                diagonalReverseSecundary.add(reversePalindromeList.get(j).get(j + i + 1));
+            }
+            diagonals.add(diagonalSecondary);
+            diagonals.add(diagonalReverseSecundary);
 
         }
 
-        diagonals.add(diagonal1);
-        diagonals.add(diagonal2);
+        // Diagonais Secundárias Abaixo da Principal
+        for (int i = 0; i < n - 1; i++) {
+            List<String> diagonalSecondary = new ArrayList<>();
+            List<String> diagonalReverseSecundary = new ArrayList<>();
+
+            for (int j = 0; j < n - i - 1; j++) {
+                diagonalSecondary.add(palindromeList.get(j + i + 1).get(j));
+                diagonalReverseSecundary.add(reversePalindromeList.get(j + i + 1).get(j));
+            }
+            diagonals.add(diagonalSecondary);
+            diagonals.add(diagonalReverseSecundary);
+
+        }
+
+
+        for (List<String> diagonalWord : diagonals) {
+            if (diagonalWord.size() < 3) {
+                diagonalsToRemove.add(diagonalWord);
+            }
+        }
+
+        diagonals.removeAll(diagonalsToRemove);
+        System.out.println(diagonals);
 
         return diagonals;
 
