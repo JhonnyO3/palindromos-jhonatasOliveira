@@ -7,9 +7,11 @@ import com.test.palindromesearch.mapper.PalindromeDTOResponseMapper;
 import com.test.palindromesearch.mapper.PalindromeMapper;
 import com.test.palindromesearch.model.Palindrome;
 import com.test.palindromesearch.repository.PalindromeRepository;
-import org.modelmapper.ModelMapper;
+import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -20,9 +22,11 @@ import java.util.List;
 
 
 @Service
+@Slf4j
 public class PalindromeService {
 
-    private AngleEnum angleEnum;
+    Logger logger = LoggerFactory.getLogger(PalindromeService.class);
+
     @Autowired
     private PalindromeDTOMapperr palindromeDTOMapper;
     @Autowired
@@ -33,16 +37,13 @@ public class PalindromeService {
     @Autowired
     private PalindromeRepository palindromeRepository;
 
+    @Value("${app.minimum.letter.palindrome}")
+    private int minimumLetterLength;
 
-    @Bean
-    public ModelMapper modelMapper() {
-        return new ModelMapper();
-    }
-
-    public PalindromeService() {
-    }
 
     public List<PalindromeDTO> getAllPalindromes() {
+
+        logger.info("Calling getAllPalindromes..");
 
         try {
 
@@ -54,6 +55,8 @@ public class PalindromeService {
 
             List<PalindromeDTO> palindromeDTOList = palindromeDTOMapper.mapToDTOList(palindrome);
 
+            logger.info("getAllPalindromes returned with successful");
+
             return palindromeDTOList;
 
         } catch (PalindromeException e) {
@@ -62,18 +65,20 @@ public class PalindromeService {
         }
     }
 
-    public List<PalindromeDTOResponse> findPalindromeInMatriz(MatrizDTO matrizDto) throws Exception {
+    public List<PalindromeDTO> findPalindromeInMatriz(MatrizDTO matrizDto) throws Exception {
 
         try {
-            List<PalindromeDTO> palindromeDTOList = switchPalindromes(matrizDto, AngleEnum.ANGLE_HORIZONTAL);
+            List<PalindromeDTO> palindromeDTOList = switchPalindromes(matrizDto);
 
             List<Palindrome> palindromeList = palindromeMapper.mapToList(palindromeDTOList);
 
-            List<PalindromeDTOResponse> palindromeDTOResponses = palindromeDTOResponseMapper.mapToList(palindromeDTOList);
-
             palindromeRepository.saveAll(palindromeList);
 
-            return palindromeDTOResponses;
+            palindromeDTOList = getAllPalindromes();
+
+            logger.info("findPalindromeInMatriz returned with successful");
+
+            return palindromeDTOList;
 
         } catch (Exception e) {
             throw new PalindromeException(HttpStatus.BAD_REQUEST, "Error inserting palindromes!");
@@ -82,9 +87,11 @@ public class PalindromeService {
 
     public List<List<String>> convertAngleList(List<List<String>> palindromeList, List<List<String>> vertitalList, List<List<String>> diagonalList) {
 
-        System.out.println("Diagonal List: " + diagonalList);
-        System.out.println("Vertical List: " + vertitalList);
-        System.out.println("Horizontal List: " + palindromeList);
+        logger.info("Calling convertAngleList..");
+
+        logger.info("Diagonal List: " + diagonalList);
+        logger.info("Vertical List: " + vertitalList);
+        logger.info("Horizontal List: " + palindromeList);
 
         List<List<String>> angleList = new ArrayList<>();
 
@@ -92,7 +99,9 @@ public class PalindromeService {
         angleList.addAll(vertitalList);
         angleList.addAll(diagonalList);
 
-        System.out.println("Palindrome List: " + angleList);
+        logger.info("Palindrome List: " + angleList);
+
+        logger.info("convertAngleList returned with successful");
 
 
         return angleList;
@@ -100,7 +109,9 @@ public class PalindromeService {
     }
 
 
-    public List<PalindromeDTO> switchPalindromes(MatrizDTO matrizDto, AngleEnum angle) throws Exception {
+    public List<PalindromeDTO> switchPalindromes(MatrizDTO matrizDto) throws Exception {
+
+        logger.info("Calling switchPalindromes..");
 
         //Horizontal list
         List<List<String>> palindromeList = horizontalFormat(matrizDto);
@@ -113,32 +124,26 @@ public class PalindromeService {
 
         List<List<String>> matrizPalindrome = convertAngleList(palindromeList, vertitalList, diagonalList);
 
-        findPalindrome(matrizPalindrome);
+
+        List<String> palindromeExtractedList = findPalindrome(matrizPalindrome);
 
 
-        PalindromeDTO palindromeDTO = new PalindromeDTO(null, "CASCA");
-        PalindromeDTO palindromeDTO1 = new PalindromeDTO(null, "OVO");
+        List<Palindrome> palindromeObjectList = new ArrayList<>();
 
-        List<PalindromeDTO> palindromeDTOResponses = new ArrayList<>();
-        palindromeDTOResponses.add(palindromeDTO);
-        palindromeDTOResponses.add(palindromeDTO1);
+        for (String palindrome : palindromeExtractedList) {
+            Palindrome palindromeObject = new Palindrome(palindrome);
+            palindromeObjectList.add(palindromeObject);
 
-
-        return palindromeDTOResponses;
-    }
-
-    public boolean wordIsPalindrome(String word) {
-        int firtLetter = 0;
-
-        int wordSize = word.length() - 1;
-
-        while (firtLetter < wordSize) {
-            if (word.charAt(firtLetter) != word.charAt(wordSize)) {
-                return false;
-            }
         }
-        return true;
+
+        logger.info("switchPalindromes returned with successful");
+        logger.info("Palindrome Object" + palindromeObjectList);
+        List<PalindromeDTO> palindromeDTO = palindromeDTOMapper.mapToDTOList(palindromeObjectList);
+
+
+        return  palindromeDTO;
     }
+
 
     public boolean compareWords(String word1, String word2) {
         if (word1.equals(word2) || word1.equals(new StringBuilder(word2))) {
@@ -220,8 +225,9 @@ public class PalindromeService {
 
     }
 
-    //TODO: Limpeza no codigo, finalizar logica
     public List<String> findPalindrome(List<List<String>> matrizPalindrome) throws PalindromeException {
+
+        logger.info("Calling findPalindrome..");
 
         String word = "";
 
@@ -233,39 +239,21 @@ public class PalindromeService {
 
         for (int listIndex = 0; listIndex < matrizPalindrome.size() - 1; listIndex++) {
             List<String> inputList = matrizPalindrome.get(listIndex);
-
-            actualList:
-            for (int i = 0; i < inputList.size(); i++) {
+            actualList: for (int i = 0; i < inputList.size(); i++) {
                 boolean cutWord = true;
                 String wordIndex = buildWords(i, inputList, false, 2);
 
                 for (indexf = 1; indexf < inputList.size() - 1; indexf++) {
                     String wordReverse = buildWords(indexf, inputList, true, 2);
                     if (compareWords(wordIndex, wordReverse)) {
-//                        if (indexf == i + 1) {
-//                            String palindome = buildWord3(inputList, indexf, i);
-//                            palindromes.add(palindome);
-//                            cutWord = false;
-//                            break actualList;
-//                        }
-//                        if (indexf == i + 1) { //compara se a Letra presente no index F é a mesma coletada pelo i + 1
-//                            wordReverse = buildWords(indexf + 1, inputList, false, 1);
-//
-//                            if (indexf < inputList.size() || i < inputList.size()) {
-//                                for (int nextWordIndex = indexf + 2; nextWordIndex < inputList.size() - 1; nextWordIndex++) {
-//                                    word = buildWords(nextWordIndex, inputList, false, 2);
-//                                    if (!compareWords(wordIndex, word)) {
-//                                        break;
-//                                    }
-//                                }
-//                            }
-//                        }
                         String palindome = palindromeWordController(inputList, indexf, i, wordIndex, wordReverse, word);
-//                        String palindome = isPalindrome(wordIndex, wordReverse, word);
-                        palindromes.add(palindome);
-                        cutWord = false;
-                        word = "";
-                        break actualList;
+
+                        if (palindome.length() >= minimumLetterLength) {
+                            palindromes.add(palindome);
+                            cutWord = false;
+                            word = "";
+                            break actualList;
+                        }
                     }
                 }
                 if (cutWord) {
@@ -274,7 +262,12 @@ public class PalindromeService {
                 }
             }
         }
-        System.out.println(palindromes);
+
+        if (palindromes.size() <= 0) {
+            throw  new PalindromeException(HttpStatus.BAD_REQUEST, "Not found Any Palindrome inside the Matrix.");
+        }
+        logger.info("findPalindrome returned with successful");
+        logger.info("Palindromes: " + palindromes);
         return palindromes;
     }
 
@@ -371,7 +364,6 @@ public class PalindromeService {
         }
 
         diagonals.removeAll(diagonalsToRemove);
-        System.out.println(diagonals);
 
         return diagonals;
 

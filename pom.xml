@@ -94,6 +94,7 @@
             </activation>
             <properties>
                 <activatedProperties>ENV_H2</activatedProperties>
+                <app.minimum.letter.palindrome>4</app.minimum.letter.palindrome>
             </properties>
         </profile>
 

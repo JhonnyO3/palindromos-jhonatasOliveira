@@ -56,10 +56,10 @@ public class PalindromeController<T> {
     @ApiResponse(responseCode = "400", description = "Validation Error")
     @ApiResponse(responseCode = "404", description = "Palindrome not found")
     @PostMapping("/insert/palindrome")
-    public ResponseEntity<List<PalindromeDTOResponse>> insertPalindrome(@RequestBody MatrizDTO matrizDto) throws Exception {
+    public ResponseEntity<List<PalindromeDTO>> insertPalindrome(@RequestBody MatrizDTO matrizDto) throws Exception {
         try {
 
-            List<PalindromeDTOResponse> palindromeResult = palindromeService.findPalindromeInMatriz(matrizDto);
+            List<PalindromeDTO> palindromeResult = palindromeService.findPalindromeInMatriz(matrizDto);
 
             return new ResponseEntity<>(palindromeResult, HttpStatus.OK);
 

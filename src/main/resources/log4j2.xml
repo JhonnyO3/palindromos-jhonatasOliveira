@@ -1,10 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration>
     <Appenders>
-        <Console name="Console" target="SYSTEM_OUT">
+        <Console name="CONSOLE" target="SYSTEM_OUT">
             <PatternLayout
                     pattern="%-30d %p [%t] %-30.30C: %msg%n%throwable" />
         </Console>
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <PatternLayout
+                        pattern="%-30d %p [%t] %-30.30C: %msg%n%throwable" />
+            </encoder>
+        </appender>
 
         <RollingFile name="File" fileName="./logs/app-log4j2.log" filePattern="./logs/app-%d{-dd-MMMM-yyyy}-%i.log4j2.log.gz">
             <PatternLayout>
@@ -24,7 +30,8 @@
             <AppenderRef ref="File" />
         </Root>
 
-        <Logger name="com.sergio.socialnetwork" level="DEBUG"/>
+        <Logger name="com.test.palindromesearch" level="DEBUG"/>
     </Loggers>
 
 </Configuration>
+
