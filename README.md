@@ -46,7 +46,7 @@ Os logs da aplicação são personalizados com um template do **Logback Classic*
 Variáveis de ambiente são configuradas no arquivo `application.properties`, permitindo atribuição a qualquer objeto.
 
 ### Arquitetura e Funcionalidades
-![Texto Alternativo](arquitetura-controllers(1).png)
+![Texto Alternativo](images/arquitetura-controllers(1).png)
 
 - Logica de conversão da Matriz:
 Para um processo inicial, é feito um processo de mapeamento nos indices da Matriz para listas de angulo, onde cada lista representa um angulo diferente, sendo eles
@@ -55,7 +55,7 @@ Para um processo inicial, é feito um processo de mapeamento nos indices da Matr
 - Listas Diagonais
   
   
-  ![Texto Alternativo](arquitetura-controllers(2).png)
+  ![Texto Alternativo](images/arquitetura-controllers(2).png)
 
   - Algoritmo de limpeza por pares:
 Para a identificalçao de possiveis palindromes, utilizamos um algoritmo que percorre por todas listas formatadas postariormente.
@@ -68,12 +68,12 @@ Ao percorrer, cada lista é interada por 2 principais pares, sendo eles:
   
   -Trabalhando com pares
 
-  ![Texto Alternativo](arquitetura-controllers(3).png)
+  ![Texto Alternativo](images/arquitetura-controllers(3).png)
 
 
 - Trabalhando com impares
  
- ![Texto Alternativo](arquitetura-controllers(5).png)
+ ![Texto Alternativo](images/arquitetura-controllers(5).png)
 
    
     
