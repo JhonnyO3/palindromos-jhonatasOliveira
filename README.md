@@ -46,6 +46,37 @@ Os logs da aplicação são personalizados com um template do **Logback Classic*
 Variáveis de ambiente são configuradas no arquivo `application.properties`, permitindo atribuição a qualquer objeto.
 
 ### Arquitetura e Funcionalidades
+![Texto Alternativo](arquitetura-controllers(1).png)
+
+- Logica de conversão da Matriz:
+Para um processo inicial, é feito um processo de mapeamento nos indices da Matriz para listas de angulo, onde cada lista representa um angulo diferente, sendo eles
+- Listas Horizontais
+- Listas Verticais
+- Listas Diagonais
+  
+  
+  ![Texto Alternativo](arquitetura-controllers(2).png)
+
+  - Algoritmo de limpeza por pares:
+Para a identificalçao de possiveis palindromes, utilizamos um algoritmo que percorre por todas listas formatadas postariormente.
+Ao percorrer, cada lista é interada por 2 principais pares, sendo eles:
+- 1par: percorre lista.index(i) e concatena com lista.index(i+1);
+- 2par: percorre a lista.index(f =i+1) e concatena com a lista.index(f+1);
+  
+  Após a montagem de pares, é comparado cada par que está se formando, obs: o par1 só altera seu index após o par2 ter percorrido e comparado toda a lista.
+  caso a palavra seja impar, ou seja 3/5/7 letras, o algoritmo identifica pela contagem dos pares, e monta 1 trio e 1 par de letras.
+  
+  -Trabalhando com pares
+
+  ![Texto Alternativo](arquitetura-controllers(3).png)
+
+
+- Trabalhando com impares
+ 
+ ![Texto Alternativo](arquitetura-controllers(5).png)
+
+   
+    
 
 O projeto segue uma arquitetura onde as camadas são organizadas da seguinte forma:
 
