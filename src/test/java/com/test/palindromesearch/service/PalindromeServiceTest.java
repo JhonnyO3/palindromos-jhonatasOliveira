@@ -2,7 +2,6 @@ package com.test.palindromesearch.service;
 
 import com.test.palindromesearch.ApplicationConfigTest;
 import com.test.palindromesearch.config.PalindromeException;
-import com.test.palindromesearch.dto.AngleEnum;
 import com.test.palindromesearch.dto.ColumnDTO;
 import com.test.palindromesearch.dto.MatrizDTO;
 import com.test.palindromesearch.dto.PalindromeDTO;
@@ -11,22 +10,15 @@ import com.test.palindromesearch.mapper.PalindromeDTOResponseMapper;
 import com.test.palindromesearch.mapper.PalindromeMapper;
 import com.test.palindromesearch.model.Palindrome;
 import com.test.palindromesearch.repository.PalindromeRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatcher;
 import org.mockito.ArgumentMatchers;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -54,9 +46,9 @@ class PalindromeServiceTest extends ApplicationConfigTest {
         String palindrome3 = "ARARA";
         String palindrome4 = "LPPL";
 
-
         List<String> palindromeExtractedList = new ArrayList<>(Arrays.asList(palindrome1, palindrome2, palindrome3, palindrome4));
         List<Palindrome> palindromeObjectList = new ArrayList<>();
+
 
         for (String palindrome : palindromeExtractedList) {
             Palindrome palindromeObject = new Palindrome(palindrome);
@@ -151,16 +143,33 @@ class PalindromeServiceTest extends ApplicationConfigTest {
     }
 
     @Test
-    @DisplayName("Have to return all palindromes existing in H2 Database")
-    void testFindAllPalindromes() {
+    @DisplayName("Have to return a especific id palindromes existing in H2 Database")
+    void testFindOnePalindromes() {
+        Long id = 1L;
+        int id1 = 1;
         List<Palindrome> list = palindromeList();
+        when(palindromeRepository.findById(id)).thenReturn(Optional.ofNullable(list.get(id1)));
+        Mockito.when(palindromeDTOMapper.mapToDTOList(ArgumentMatchers.any())).thenReturn(generetePalindromeDTO());
+
+
+        List<PalindromeDTO> palindromes = palindromeService.getAllPalindromes(id);
+
+        assertEquals(palindromes.get(1).palindrome(), list.get(id1).getPalindrome());
+
+    }
+
+    @Test
+    @DisplayName("Have to return a all palindromes existing in H2 Database")
+    void testAllPalindromes() {
+        List<Palindrome> list = palindromeList();
+
         when(palindromeRepository.findAll()).thenReturn(list);
 
-        List<Palindrome> palindromeList = palindromeRepository.findAll();
-        assertEquals(list.size(), palindromeList.size());
+        List<PalindromeDTO> palindromes = palindromeService.getAllPalindromes(null);
 
-        assertTrue(list.containsAll(palindromeList));
-        assertTrue(palindromeList.containsAll(list));
+        List<PalindromeDTO> palindromeDTOList = palindromeDTOMapper.mapToDTOList(list);
+
+        assertEquals(palindromeDTOList, palindromes);
 
     }
 
@@ -171,7 +180,7 @@ class PalindromeServiceTest extends ApplicationConfigTest {
 
         when(palindromeRepository.findAll()).thenReturn(emptyList);
 
-        PalindromeException exception = assertThrows(PalindromeException.class, () -> palindromeService.getAllPalindromes());
+        PalindromeException exception = assertThrows(PalindromeException.class, () -> palindromeService.getAllPalindromes(null));
 
         assertEquals(HttpStatus.BAD_REQUEST, exception.getHttpStatus());
         assertEquals("Not found any palindrome", exception.getMessage());
@@ -336,6 +345,7 @@ class PalindromeServiceTest extends ApplicationConfigTest {
     }
 
     @Test
+    @DisplayName("Check the palindrome list of extracted in the matriz")
     void testFindPalindromeInMatriz() throws Exception {
 
         List<PalindromeDTO> palindromeDTOS = generetePalindromeDTO();
@@ -353,6 +363,19 @@ class PalindromeServiceTest extends ApplicationConfigTest {
         assertEquals(palindromeDTOS, palindromeDTOList);
 
         System.out.println(palindromeDTOList);
+
+    }
+
+    @Test
+    @DisplayName("Check the exception extracting palindrome in matriz")
+    void testFailPalindromeInMatriz() throws Exception {
+
+        PalindromeException exception = assertThrows(PalindromeException.class, () -> palindromeService.findPalindromeInMatriz(generateMatrizDTO()));
+
+        assertEquals(HttpStatus.BAD_REQUEST, exception.getHttpStatus());
+        assertEquals("Error inserting palindromes!", exception.getMessage());
+
+
 
     }
 
